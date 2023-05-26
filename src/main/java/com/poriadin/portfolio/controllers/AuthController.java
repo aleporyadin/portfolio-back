@@ -1,10 +1,6 @@
 package com.poriadin.portfolio.controllers;
 
-import com.poriadin.portfolio.dto.JwtResponse;
-import com.poriadin.portfolio.dto.LoginRequest;
-import com.poriadin.portfolio.dto.MessageResponse;
-import com.poriadin.portfolio.dto.SignupRequest;
-import com.poriadin.portfolio.dto.ErrorResponse;
+import com.poriadin.portfolio.dto.*;
 import com.poriadin.portfolio.entities.ERole;
 import com.poriadin.portfolio.entities.Role;
 import com.poriadin.portfolio.entities.User;
@@ -18,16 +14,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -49,9 +47,17 @@ public class AuthController {
         this.jwtUtils = jwtUtils;
     }
 
+    @GetMapping("/user")
+    public ResponseEntity<?> getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        // Return the authenticated user details
+        return ResponseEntity.ok(userDetails);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -61,14 +67,13 @@ public class AuthController {
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities().stream()
-                    .map(item -> item.getAuthority())
+                    .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
 
-            return ResponseEntity.ok(new JwtResponse(jwt,
-                    userDetails.getId(),
-                    userDetails.getUsername(),
-                    userDetails.getEmail(),
-                    roles));
+            return ResponseEntity.ok(new JwtResponse(userDetails.getId(), jwt, "", userDetails.getUsername(),
+                    userDetails.getFirstName(), userDetails.getLastName(), userDetails.getEmail(), roles,
+                    userDetails.getAvatar(), userDetails.getBirthdate()));
+
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
             ErrorResponse errorResponse = new ErrorResponse("bad_request", "Invalid login or password");
@@ -79,7 +84,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+    public ResponseEntity<?> registerUser(@ModelAttribute SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
@@ -92,13 +97,22 @@ public class AuthController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
-
+        User user = new User();
         Set<String> strRoles = signUpRequest.getRole();
         Set<Role> roles = new HashSet<>();
+
+        try {
+            user.setUsername(signUpRequest.getUsername());
+            user.setEmail(signUpRequest.getEmail());
+            user.setPassword(encoder.encode(signUpRequest.getPassword()));
+            user.setAvatar(signUpRequest.getAvatar().getBytes());
+            user.setBirthdate(signUpRequest.getBirthdate());
+            user.setFirstName(signUpRequest.getFirstName());
+            user.setLastName(signUpRequest.getLastName());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to register user.");
+        }
 
         if (strRoles == null) {
             Role userRole = roleRepository.findByName(ERole.ROLE_USER)

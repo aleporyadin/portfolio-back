@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +28,16 @@ public class User {
     private String username;
 
     @NotBlank
+    @Size(max = 20)
+    @Column(name = "first_name")
+    private String firstName;
+
+    @NotBlank
+    @Size(max = 20)
+    @Column(name = "last_name")
+    private String lastName;
+
+    @NotBlank
     @Size(max = 50)
     @Column(name = "email")
     private String email;
@@ -36,6 +47,9 @@ public class User {
     @Column(name = "password")
     private String password;
 
+    @Temporal(TemporalType.DATE)
+    @Column(name = "birthdate")
+    private Date birthdate;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
@@ -43,12 +57,10 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public User() {
-    }
+    @Lob
+    @Column(name = "avatar", length = 100000)
+    private byte[] avatar;
 
-    public User(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
+    public User() {
     }
 }

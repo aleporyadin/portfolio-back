@@ -2,6 +2,7 @@ package com.poriadin.portfolio.services;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.poriadin.portfolio.entities.User;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,10 +10,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serial;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
+@AllArgsConstructor
 public class UserDetailsImpl implements UserDetails {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -23,18 +26,32 @@ public class UserDetailsImpl implements UserDetails {
 
     private String email;
 
+    private byte[] avatar;
+
     @JsonIgnore
     private String password;
 
+    private String firstName;
+
+    private String lastName;
+
+    private Date birthdate;
+
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Long id, String username, String email, String password,
-                           Collection<? extends GrantedAuthority> authorities) {
+    public UserDetailsImpl(Long id, String username, String email, String password, byte[] avatar,
+                           Collection<? extends GrantedAuthority> authorities,
+                           String firstName, String lastName, Date birthdate) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.avatar = avatar;
         this.authorities = authorities;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.birthdate = birthdate;
+
     }
 
     public static UserDetailsImpl build(User user) {
@@ -47,7 +64,11 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
-                authorities);
+                user.getAvatar(),
+                authorities,
+                user.getFirstName(),
+                user.getLastName(),
+                user.getBirthdate());
     }
 
     @Override
