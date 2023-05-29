@@ -52,7 +52,6 @@ public class AuthController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        // Return the authenticated user details
         return ResponseEntity.ok(userDetails);
     }
 

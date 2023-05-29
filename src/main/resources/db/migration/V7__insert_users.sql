@@ -1,0 +1,2 @@
+INSERT INTO `users` (id, avatar, birthdate, email, first_name, last_name, password, user_name)
+VALUES (1, NULL, null, 'test@gmail.com', 'Ale', 'Po', '$2a$12$4IRfg/T69U9vtx2N68MovuBeaJ1s7eZDSZdZR.fHFFaYI.pHG.t8y', 'test');
