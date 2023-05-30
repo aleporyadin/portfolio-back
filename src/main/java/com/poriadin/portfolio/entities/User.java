@@ -24,7 +24,7 @@ public class User {
 
     @NotBlank
     @Size(max = 20)
-    @Column(name = "user_name")
+    @Column(name = "user_name", unique = true)
     private String username;
 
     @NotBlank
@@ -39,7 +39,7 @@ public class User {
 
     @NotBlank
     @Size(max = 50)
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
 
     @NotBlank
