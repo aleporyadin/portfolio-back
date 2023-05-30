@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/home")
 public class HomeController {
     @GetMapping("/")
-    public ResponseEntity<?> getAuthenticatedUser() {
+    public ResponseEntity<?> home() {
 
         return ResponseEntity.ok("HEEELLLO");
     }
