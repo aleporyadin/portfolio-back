@@ -1,5 +1,6 @@
 package com.poriadin.portfolio.dto;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -26,7 +27,6 @@ public class SignupRequest {
     @Size(max = 20)
     private String lastName;
 
-    @NotBlank
     private Date birthdate;
 
     @NotBlank
@@ -40,6 +40,6 @@ public class SignupRequest {
     @Size(min = 6, max = 40)
     private String password;
 
-    @NotBlank
+    @Nullable
     private MultipartFile avatar;
 }

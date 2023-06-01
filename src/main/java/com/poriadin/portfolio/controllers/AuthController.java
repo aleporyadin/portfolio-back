@@ -83,7 +83,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@ModelAttribute SignupRequest signUpRequest) {
+    public ResponseEntity<?> registerUser(@RequestBody  SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
@@ -104,8 +104,8 @@ public class AuthController {
             user.setUsername(signUpRequest.getUsername());
             user.setEmail(signUpRequest.getEmail());
             user.setPassword(encoder.encode(signUpRequest.getPassword()));
-            user.setAvatar(signUpRequest.getAvatar().getBytes());
-            user.setBirthdate(signUpRequest.getBirthdate());
+            if (signUpRequest.getAvatar() != null) user.setAvatar(signUpRequest.getAvatar().getBytes());
+            if (signUpRequest.getBirthdate() != null) user.setBirthdate(signUpRequest.getBirthdate());
             user.setFirstName(signUpRequest.getFirstName());
             user.setLastName(signUpRequest.getLastName());
         } catch (IOException e) {
