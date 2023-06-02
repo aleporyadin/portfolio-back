@@ -47,12 +47,19 @@ public class AuthController {
         this.jwtUtils = jwtUtils;
     }
 
-    @GetMapping("/user")
-    public ResponseEntity<?> getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        return ResponseEntity.ok(userDetails);
+    @GetMapping("/user")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null) {
+            // User is not authenticated
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Error: User not found."));
+
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/login")
