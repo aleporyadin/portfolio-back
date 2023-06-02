@@ -1,5 +1,6 @@
 CREATE TABLE news
 (
+    id          bigint       NOT NULL,
     title       VARCHAR(75)  NOT NULL PRIMARY KEY,
     description VARCHAR(194) NOT NULL,
     url         VARCHAR(136) NOT NULL,
