@@ -3,6 +3,8 @@ package com.poriadin.portfolio.services;
 import com.poriadin.portfolio.entities.News;
 import com.poriadin.portfolio.repositories.NewsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,8 +20,9 @@ public class NewsService {
     }
 
 
-    public List<News> getAllNews() {
-        return (List<News>) newsRepository.findAll();
+    public List<News> getNewsByPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return (List<News>) newsRepository.findAll(pageable);
     }
 
     public Optional<News> getNewsByTitle(String title) {
