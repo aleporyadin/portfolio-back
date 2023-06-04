@@ -6,6 +6,7 @@ import com.poriadin.portfolio.services.FileService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,11 +45,34 @@ public class FileController {
     public ResponseEntity<Resource> downloadFile(@PathVariable Integer userId, @PathVariable Integer fileId) {
         try {
             Resource fileResource = fileService.downloadFile(userId, fileId);
+
+            // Get the file extension
+            String extension = getFileExtension(fileResource.getFilename());
+
+            // Set the appropriate content type based on the extension
+            String contentType = getContentType(extension);
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileResource.getFilename() + "\"")
+                    .contentType(MediaType.parseMediaType(contentType))
                     .body(fileResource);
         } catch (FileNotFoundException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    private String getFileExtension(String filename) {
+        return filename.substring(filename.lastIndexOf(".") + 1);
+    }
+
+    private String getContentType(String extension) {
+        switch (extension.toLowerCase()) {
+            case "png":
+                return "image/png";
+            case "txt":
+                return "text/plain";
+            default:
+                return "application/octet-stream";
         }
     }
 
