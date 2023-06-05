@@ -1,5 +1,6 @@
 package com.poriadin.portfolio.controllers;
 
+import com.poriadin.portfolio.services.FileService;
 import com.poriadin.portfolio.services.UserService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +13,10 @@ import java.nio.file.Paths;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
-
-    public UserController(UserService userService) {
+    private final FileService fileService;
+    public UserController(UserService userService, FileService fileService) {
         this.userService = userService;
+        this.fileService = fileService;
     }
 
     @GetMapping("/avatars/{avatarPath}")
@@ -23,7 +25,7 @@ public class UserController {
         if (avatarBytes != null) {
             try {
                 String extension = getExtension(avatarPath);
-                String contentType = determineContentType(extension);
+                String contentType = fileService.getContentType(extension);
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.parseMediaType(contentType));
@@ -47,16 +49,6 @@ public class UserController {
         }
 
         return extension;
-    }
-
-    private String determineContentType(String extension) {
-        return switch (extension.toLowerCase()) {
-            case "jpg", "jpeg" -> "image/jpeg";
-            case "png" -> "image/png";
-            case "gif" -> "image/gif";
-            // Add more cases for other supported image formats if needed
-            default -> "application/octet-stream";
-        };
     }
 
 }

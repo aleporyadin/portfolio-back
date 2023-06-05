@@ -1,5 +1,6 @@
 package com.poriadin.portfolio.entities;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,6 +26,8 @@ public class News {
     private String title;
     @NotBlank
     private String description;
+    @Nullable
+    private String author;
     @NotBlank
     private String url;
     @NotBlank

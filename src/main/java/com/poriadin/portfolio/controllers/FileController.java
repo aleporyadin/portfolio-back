@@ -4,16 +4,24 @@ package com.poriadin.portfolio.controllers;
 import com.poriadin.portfolio.entities.File;
 import com.poriadin.portfolio.services.FileService;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @CrossOrigin
@@ -26,8 +34,10 @@ public class FileController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<File>> getUserFiles(@PathVariable Integer userId) {
-        List<File> files = fileService.getUserFiles(userId);
+    public ResponseEntity<Page<File>> getUserFiles(@PathVariable Integer userId,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        Page<File> files = fileService.getUserFiles(userId, page, size);
         return ResponseEntity.ok(files);
     }
 
@@ -36,6 +46,8 @@ public class FileController {
         try {
             fileService.uploadFile(userId, file);
             return ResponseEntity.ok("File uploaded successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(216).body(e.getMessage());
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -50,7 +62,7 @@ public class FileController {
             String extension = getFileExtension(fileResource.getFilename());
 
             // Set the appropriate content type based on the extension
-            String contentType = getContentType(extension);
+            String contentType = fileService.getContentType(extension);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileResource.getFilename() + "\"")
@@ -63,17 +75,6 @@ public class FileController {
 
     private String getFileExtension(String filename) {
         return filename.substring(filename.lastIndexOf(".") + 1);
-    }
-
-    private String getContentType(String extension) {
-        switch (extension.toLowerCase()) {
-            case "png":
-                return "image/png";
-            case "txt":
-                return "text/plain";
-            default:
-                return "application/octet-stream";
-        }
     }
 
     @DeleteMapping("/{userId}/{fileId}")

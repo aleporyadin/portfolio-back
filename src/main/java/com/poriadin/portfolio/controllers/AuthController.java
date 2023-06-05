@@ -53,7 +53,6 @@ public class AuthController {
     @GetMapping("/user")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         if (authentication == null) {
-            // User is not authenticated
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -61,7 +60,9 @@ public class AuthController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Error: User not found."));
 
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(new CurrentUserResponseDto(user.getId(), user.getUsername(),
+                user.getFirstName(), user.getLastName(), user.getEmail(), user.getRoles(),
+                user.getAvatarPath(), user.getBirthdate()));
     }
 
     @PostMapping("/login")

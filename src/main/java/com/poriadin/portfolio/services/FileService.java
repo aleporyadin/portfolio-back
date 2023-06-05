@@ -7,6 +7,9 @@ import com.poriadin.portfolio.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -40,9 +42,10 @@ public class FileService {
         }
     }
 
-    public List<File> getUserFiles(Integer userId) {
+    public Page<File> getUserFiles(Integer userId, int page, int size) {
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found."));
-        return fileRepository.findByUser(user);
+        Pageable pageable = PageRequest.of(page, size);
+        return fileRepository.findByUser(user, pageable);
     }
 
     public void uploadFile(Integer userId, MultipartFile file) throws IOException {
@@ -115,5 +118,26 @@ public class FileService {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public String getContentType(String extension) {
+        return switch (extension.toLowerCase()) {
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "png" -> "image/png";
+            case "gif" -> "image/gif";
+            case "pdf" -> "application/pdf";
+            case "txt" -> "text/plain";
+            case "doc", "docx" -> "application/msword";
+            case "xls", "xlsx" -> "application/vnd.ms-excel";
+            case "zip" -> "application/zip";
+            case "rar" -> "application/x-rar-compressed";
+            case "7z" -> "application/x-7z-compressed";
+            case "mp4" -> "video/mp4";
+            case "avi" -> "video/x-msvideo";
+            case "mp3" -> "audio/mpeg";
+            case "wav" -> "audio/wav";
+            // Add more cases for other possible extensions and content types
+            default -> "application/octet-stream";
+        };
     }
 }
