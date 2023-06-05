@@ -41,7 +41,6 @@ public class UserController {
     }
 
     private String getExtension(String filename) {
-        Path path = Paths.get(filename);
         String extension = "";
 
         if (filename.contains(".")) {

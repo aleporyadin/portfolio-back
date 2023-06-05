@@ -135,21 +135,21 @@ public class AuthController {
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
-                    case "admin":
+                    case "admin" -> {
                         Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(adminRole);
-                        break;
-                    case "mod":
+                    }
+                    case "mod" -> {
                         Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(modRole);
-                        break;
-                    default:
+                    }
+                    default -> {
                         Role userRole = roleRepository.findByName(ERole.ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(userRole);
-                        break;
+                    }
                 }
             });
         }
@@ -165,12 +165,11 @@ public class AuthController {
         return timestamp + "_" + originalFilename;
     }
 
-    private String saveImage(MultipartFile file, String filename) throws IOException {
+    private void saveImage(MultipartFile file, String filename) throws IOException {
         Path folderPath = Paths.get(AVATAR_UPLOAD_PATH);
         Path filePath = folderPath.resolve(filename);
         Files.createDirectories(folderPath);
         Files.write(filePath, file.getBytes());
-        return filePath.toString();
     }
 
 }
