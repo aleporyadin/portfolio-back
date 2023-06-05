@@ -26,7 +26,7 @@ public class UserDetailsImpl implements UserDetails {
 
     private String email;
 
-    private byte[] avatar;
+    private String avatarPath;
 
     @JsonIgnore
     private String password;
@@ -39,14 +39,14 @@ public class UserDetailsImpl implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Long id, String username, String email, String password, byte[] avatar,
+    public UserDetailsImpl(Long id, String username, String email, String password, String avatarPath,
                            Collection<? extends GrantedAuthority> authorities,
                            String firstName, String lastName, Date birthdate) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.avatar = avatar;
+        this.avatarPath = avatarPath;
         this.authorities = authorities;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -64,7 +64,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
-                user.getAvatar(),
+                user.getAvatarPath(),
                 authorities,
                 user.getFirstName(),
                 user.getLastName(),

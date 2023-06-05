@@ -17,7 +17,7 @@ public class JwtResponse {
     private String last_name;
     private String email;
     private List<String> roles;
-    private byte[] avatar;
+    private String avatarPath;
     private Date birthdate;
 
 }

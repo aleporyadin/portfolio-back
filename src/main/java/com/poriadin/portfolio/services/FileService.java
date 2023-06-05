@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class FileService {
@@ -47,13 +48,20 @@ public class FileService {
     public void uploadFile(Integer userId, MultipartFile file) throws IOException {
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found."));
 
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+
+        // Проверка, существует ли файл с таким именем
+        if (fileRepository.findByNameAndUser(fileName, user).isPresent()) {
+            throw new IllegalArgumentException("File with the same name already exists.");
+        }
+
         Path targetLocation = this.fileStorageLocation.resolve(fileName);
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
         File newFile = new File(fileName, user);
         fileRepository.save(newFile);
     }
+
 
     public Resource downloadFile(Integer userId, Integer fileId) throws FileNotFoundException {
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found."));

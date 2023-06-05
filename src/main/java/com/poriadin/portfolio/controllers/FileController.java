@@ -37,7 +37,7 @@ public class FileController {
             fileService.uploadFile(userId, file);
             return ResponseEntity.ok("File uploaded successfully.");
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 

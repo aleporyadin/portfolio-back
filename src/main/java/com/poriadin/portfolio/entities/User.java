@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
@@ -12,13 +13,13 @@ import java.util.Set;
 
 @Entity
 @Data
+@Builder
 @AllArgsConstructor
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = "user_name"),
         @UniqueConstraint(columnNames = "email")})
 public class User {
     @Id
-    @Column(name = "id", length = 45)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
@@ -57,9 +58,8 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    @Lob
-    @Column(name = "avatar", length = 100000)
-    private byte[] avatar;
+    @Column(name = "avatar_path")
+    private String avatarPath;
 
     public User() {
     }

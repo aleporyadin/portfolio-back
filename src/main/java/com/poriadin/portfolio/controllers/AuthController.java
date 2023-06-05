@@ -18,8 +18,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,15 +33,14 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder encoder;
+    private final JwtUtils jwtUtils;
 
-    final UserRepository userRepository;
+    private static final String AVATAR_UPLOAD_PATH = "avatars/";
 
-    final RoleRepository roleRepository;
-
-    final PasswordEncoder encoder;
-
-    final JwtUtils jwtUtils;
 
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils) {
         this.authenticationManager = authenticationManager;
@@ -46,7 +49,6 @@ public class AuthController {
         this.encoder = encoder;
         this.jwtUtils = jwtUtils;
     }
-
 
     @GetMapping("/user")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
@@ -78,7 +80,7 @@ public class AuthController {
 
             return ResponseEntity.ok(new JwtResponse(userDetails.getId(), jwt, "", userDetails.getUsername(),
                     userDetails.getFirstName(), userDetails.getLastName(), userDetails.getEmail(), roles,
-                    userDetails.getAvatar(), userDetails.getBirthdate()));
+                    userDetails.getAvatarPath(), userDetails.getBirthdate()));
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -86,11 +88,10 @@ public class AuthController {
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
-
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
+    public ResponseEntity<?> registerUser(@ModelAttribute SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
@@ -111,7 +112,13 @@ public class AuthController {
             user.setUsername(signUpRequest.getUsername());
             user.setEmail(signUpRequest.getEmail());
             user.setPassword(encoder.encode(signUpRequest.getPassword()));
-            if (signUpRequest.getAvatar() != null) user.setAvatar(signUpRequest.getAvatar().getBytes());
+
+
+            if (signUpRequest.getAvatar() != null) {
+                String filename = generateUniqueFilename(signUpRequest.getAvatar().getOriginalFilename());
+                saveImage(signUpRequest.getAvatar(), filename);
+                user.setAvatarPath(filename);
+            }
             if (signUpRequest.getBirthdate() != null) user.setBirthdate(signUpRequest.getBirthdate());
             user.setFirstName(signUpRequest.getFirstName());
             user.setLastName(signUpRequest.getLastName());
@@ -127,21 +134,21 @@ public class AuthController {
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
-                    case "admin" -> {
+                    case "admin":
                         Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(adminRole);
-                    }
-                    case "mod" -> {
+                        break;
+                    case "mod":
                         Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(modRole);
-                    }
-                    default -> {
+                        break;
+                    default:
                         Role userRole = roleRepository.findByName(ERole.ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(userRole);
-                    }
+                        break;
                 }
             });
         }
@@ -151,4 +158,18 @@ public class AuthController {
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
+
+    private String generateUniqueFilename(String originalFilename) {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        return timestamp + "_" + originalFilename;
+    }
+
+    private String saveImage(MultipartFile file, String filename) throws IOException {
+        Path folderPath = Paths.get(AVATAR_UPLOAD_PATH);
+        Path filePath = folderPath.resolve(filename);
+        Files.createDirectories(folderPath);
+        Files.write(filePath, file.getBytes());
+        return filePath.toString();
+    }
+
 }

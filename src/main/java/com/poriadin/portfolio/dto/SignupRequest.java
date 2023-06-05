@@ -27,6 +27,7 @@ public class SignupRequest {
     @Size(max = 20)
     private String lastName;
 
+    @Nullable
     private Date birthdate;
 
     @NotBlank
